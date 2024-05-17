@@ -2,21 +2,65 @@
 if (!defined('_PS_VERSION_'))
    exit;
 
-class DeliveryTime extends Module
+require_once(_PS_MODULE_DIR_ . 'od_deliverytime/src/repository/HolidaysRepository.php');
+require_once(_PS_MODULE_DIR_ . 'od_deliverytime/src/repository/TimesRepository.php');
+class Od_deliverytime extends Module 
 {
+
+   private $holidaysRepo;
+   private $timesRepo;
+
+
    public function __construct()
    {
-      $this->name = 'deliverytime';
-      $this->tab = 'front_office_features'; // pestaña en la que se encuentra en el backoffice.
-      $this->version = '1.0.0'; //versión del módulo
-      $this->author = 'Malva Pérez'; // autor del módulo
-      $this->need_instance = 0; //si no necesita cargar la clase en la página módulos,1 si fuese necesario.
-      $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_]; //las versiones con las que el módulo es compatible.
+      $this->name = 'od_deliverytime';
+      $this->tab = 'front_office_features';
+      $this->version = '1.0.0';
+      $this->author = 'Malva Pérez';
+      $this->need_instance = 0;
+      $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
+      $this->bootstrap = true;
 
       parent::__construct();
 
       $this->displayName = $this->l('Tiempo de entrega');
       $this->description = $this->l('Calcula el tiempo de entrega de un producto y lo muestra en el FrontOffice.');
+
+      $this->holidaysRepo = new HolidaysRepository();
+      $this->timesRepo = new TimesRepository();
+   }
+
+   public function install()
+   {
+      return $this->createTables()
+         && parent::install();
+   }
+
+   public function uninstall()
+   {
+      return $this->deleteTables()
+         && parent::uninstall();
+   }
+
+   protected function createTables()
+   {
+      return $this->holidaysRepo->createTable()
+         && $this->timesRepo->createTable();
+   }
+
+   protected function deleteTables()
+   {
+      return $this->holidaysRepo->deleteTable()
+         && $this->timesRepo->deleteTable();
+   }
+
+
+   protected function getHolidaysFormValues()
+   {
+      return array(
+         'date' => pSQL(Tools::getValue('HOLIDAY_DATE')),
+         'name' => pSQL(Tools::getValue('HOLIDAY_NAME'))
+      );
    }
 
    /**
@@ -27,14 +71,16 @@ class DeliveryTime extends Module
    {
       $output = '';
 
+      $invalid = '';
       if (Tools::isSubmit('submit' . $this->name)) {
-         $configValue = (string) Tools::getValue('TESTMODULE_CONFIG');
+         if (!$this->holidaysRepo->insert($this->getHolidaysFormValues())){
+            $invalid = 'No se ha podido añadir la festividad';
+         }
 
-         if (empty($configValue) || !Validate::isGenericName($configValue)) {
-            $output = $this->displayError($this->l('Invalid Configuration value'));
+         if ($invalid === '') {
+            $output = $this->displayConfirmation($this->l('Configuración actualizada'));
          } else {
-            Configuration::updateValue('TESTMODULE_CONFIG', $configValue);
-            $output = $this->displayConfirmation($this->l('Settings updated'));
+            $output .= $this->displayError($this->l($invalid));
          }
       }
 
@@ -50,21 +96,28 @@ class DeliveryTime extends Module
       $form = [
          'form' => [
             'legend' => [
-               'title' => $this->l('Settings'),
+               'title' => $this->l('Configuración'),
             ],
             'input' => [
                [
-                  'type' => 'text',
-                  'label' => $this->l('Configuration value'),
-                  'name' => 'TESTMODULE_CONFIG',
-                  'size' => 20,
+                  'type' => 'date',
+                  'label' => $this->l('Fecha'),
+                  'name' => 'HOLIDAY_DATE',
+                  'tab' => 'holidays',
                   'required' => true,
-               ],
+               ], [
+                  'type' => 'text',
+                  'label' => $this->l('Festividad'),
+                  'name' => 'HOLIDAY_NAME',
+                  'tab' => 'holidays',
+                  'required' => true,
+               ]
             ],
             'submit' => [
-               'title' => $this->l('Save'),
+               'title' => $this->l('Guardar'),
                'class' => 'btn btn-default pull-right',
-            ],
+               'tab' => 'times',
+            ]
          ],
       ];
 
@@ -77,8 +130,6 @@ class DeliveryTime extends Module
       $helper->submit_action = 'submit' . $this->name;
 
       $helper->default_form_language = (int) Configuration::get('PS_LANG_DEFAULT');
-
-      $helper->fields_value['TESTMODULE_CONFIG'] = Tools::getValue('TESTMODULE_CONFIG', Configuration::get('TESTMODULE_CONFIG'));
 
       return $helper->generateForm([$form]);
    }
