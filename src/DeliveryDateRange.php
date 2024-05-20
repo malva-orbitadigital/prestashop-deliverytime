@@ -11,6 +11,7 @@ class DeliveryDateRange {
       $this->id_product = $id_product;
       $this->from = $from;
       $this->to = $to;
+      $this->now = new DateTime();
    }
 
 }
