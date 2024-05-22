@@ -1,29 +1,35 @@
 <?php
 class HolidaysRepository
 {
-   private $tablename = 'od_deliverytime_holiday';
+   private const TABLE_NAME = 'od_deliverytime_holiday';
 
-   public function createTable(): bool
+   static public function createTable(): bool
    {
-      return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS ' . _DB_PREFIX_ . $this->tablename . ' (
+      return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS ' . _DB_PREFIX_ . self::TABLE_NAME . ' (
          `id` INT AUTO_INCREMENT PRIMARY KEY,
          `date` DATETIME NOT NULL,
          `name` VARCHAR(255) NOT NULL
       ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;');
    }
 
-   public function deleteTable(): bool
+   static public function deleteTable(): bool
    {
-      return Db::getInstance()->execute('DROP TABLE `' . _DB_PREFIX_ . $this->tablename . '`;');
+      return Db::getInstance()->execute('DROP TABLE `' . _DB_PREFIX_ . self::TABLE_NAME . '`;');
    }
 
-   public function insert(array $data): bool
+   static public function insert(array $data): bool
    {
       if (empty($data)) return false;
-      return Db::getInstance()->insert($this->tablename, [$data]);
+      return Db::getInstance()->insert(self::TABLE_NAME, [$data]);
    }
 
-   public function getAll(){
-      return Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . $this->tablename);
+   static public function getAll(){
+      return Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . self::TABLE_NAME);
+   }
+
+   static public function get(string $select = '*', string $where){
+      $wherestr = $where !== '' ? ' where ' . $where : '';
+      $sql = 'SELECT '.$select.' FROM ' . _DB_PREFIX_ . self::TABLE_NAME . $wherestr;
+      return Db::getInstance()->executeS($sql)[0]['count(date)'];
    }
 }

@@ -7,12 +7,6 @@ require_once(_PS_MODULE_DIR_ . 'od_deliverytime/src/repository/TimesRepository.p
 require_once(_PS_MODULE_DIR_ . 'od_deliverytime/src/DeliveryTime.php');
 class Od_deliverytime extends Module
 {
-
-   private $holidaysRepo;
-   private $timesRepo;
-   private $deliveryTime;
-
-
    public function __construct()
    {
       $this->name = 'od_deliverytime';
@@ -22,15 +16,11 @@ class Od_deliverytime extends Module
       $this->need_instance = 0;
       $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
       $this->bootstrap = true;
-
+      
       parent::__construct();
 
       $this->displayName = $this->l('Tiempo de entrega');
       $this->description = $this->l('Calcula el tiempo de entrega de un producto y lo muestra en el FrontOffice.');
-
-      $this->holidaysRepo = new HolidaysRepository();
-      $this->timesRepo = new TimesRepository();
-      $this->deliveryTime = new DeliveryTime();
    }
 
    public function install()
@@ -48,31 +38,30 @@ class Od_deliverytime extends Module
 
    protected function createTables()
    {
-      return $this->holidaysRepo->createTable()
-         && $this->timesRepo->createTable();
+      return HolidaysRepository::createTable()
+         && TimesRepository::createTable();
    }
 
    protected function deleteTables()
    {
-      return $this->holidaysRepo->deleteTable()
-         && $this->timesRepo->deleteTable();
+      return HolidaysRepository::deleteTable()
+         && TimesRepository::deleteTable();
    }
 
    public function hookDisplayProductAdditionalInfo()
    {
-      $id = Tools::getValue('id_product');
-      $this->deliveryTime->ofProduct($id);
-      $this->context->smarty->assign($this->name . '_from', '24 Mayo');
-      $this->context->smarty->assign($this->name . '_to', '27 Mayo');
+      $deliveryTime = new DeliveryTime();
+      $range = $deliveryTime->ofProduct((int) Tools::getValue('id_product'));
+      $this->context->smarty->assign($this->name . '_message', $this->l($range->__toString()));
       return $this->fetch('module:'.$this->name.'/views/templates/front/message.tpl');
    }
 
    protected function getHolidaysFormValues()
    {
-      return array(
+      return [
          'date' => pSQL(Tools::getValue('HOLIDAY_DATE')),
          'name' => pSQL(Tools::getValue('HOLIDAY_NAME'))
-      );
+      ];
    }
 
    /**
@@ -83,9 +72,14 @@ class Od_deliverytime extends Module
    {
       $output = '';
 
+      if (Tools::isSubmit('delete'.$this->name)){
+         var_dump(Tools::getValue('id', 'asd'));
+         die();
+      }
+
       $invalid = '';
       if (Tools::isSubmit('submit' . $this->name)) {
-         if (!$this->holidaysRepo->insert($this->getHolidaysFormValues())) {
+         if (!HolidaysRepository::insert($this->getHolidaysFormValues())) {
             $invalid = 'No se ha podido añadir la festividad';
          }
 
@@ -134,7 +128,7 @@ class Od_deliverytime extends Module
       $helper->table = $this->name . '_holiday';
       $helper->token = Tools::getAdminTokenLite('AdminModules');
       $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
-      return $helper->generateList($this->holidaysRepo->getAll(), $fields);
+      return $helper->generateList(HolidaysRepository::getAll(), $fields);
    }
 
    /**

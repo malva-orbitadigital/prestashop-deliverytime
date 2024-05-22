@@ -2,16 +2,11 @@
 class TimesRepository
 {
 
-   protected $db;
+   private const TABLE_NAME = 'od_deliverytime_times';
 
-   public function __construct()
+   static public function createTable()
    {
-      $this->db = Db::getInstance();
-   }
-
-   public function createTable()
-   {
-      return $this->db->execute('CREATE TABLE IF NOT EXISTS ' . _DB_PREFIX_ . 'od_deliverytime_times (
+      return Db::getInstance()->execute('CREATE TABLE IF NOT EXISTS ' . _DB_PREFIX_ . 'od_deliverytime_times (
          `id` INT AUTO_INCREMENT PRIMARY KEY,
          `ref_order` VARCHAR(9) NOT NULL,
          `min_date` DATETIME NOT NULL,
@@ -19,8 +14,8 @@ class TimesRepository
       ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;');
    }
 
-   public function deleteTable()
+   static public function deleteTable()
    {
-      return $this->db->execute('DROP TABLE `' . _DB_PREFIX_ . 'od_deliverytime_times`;');
+      return Db::getInstance()->execute('DROP TABLE `' . _DB_PREFIX_ . 'od_deliverytime_times`;');
    }
 }
