@@ -11,8 +11,8 @@ class HolidaysRule implements DeliveryDateRangeRule
       $from = $deliveryDateRange->getFrom();
       $now = $deliveryDateRange->getNow();
       
-      $daysBetweenNowFrom =  HolidaysRepository::get('count(date)', "date BETWEEN '" . $now . "' AND '" . $from . "'");
-      $daysBetweenFromTo = (int) HolidaysRepository::get('count(date)', "date BETWEEN '" . $from . "' AND '" . $to . "'");
+      $daysBetweenNowFrom =  HolidaysRepository::get('count(date)', "date BETWEEN '" . $now->format('Y-m-d H:i:s') . "' AND '" . $from->format('Y-m-d H:i:s') . "'");
+      $daysBetweenFromTo = (int) HolidaysRepository::get('count(date)', "date BETWEEN '" . $from->format('Y-m-d H:i:s') . "' AND '" . $to->format('Y-m-d H:i:s') . "'");
       $deliveryDateRange->addDays($daysBetweenNowFrom);
       $deliveryDateRange->addDaysTo($daysBetweenFromTo);
 

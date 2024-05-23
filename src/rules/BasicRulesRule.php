@@ -11,16 +11,48 @@ class BasicRulesRule implements DeliveryDateRangeRule
    {
       // shippment
       $deliveryDateRange->addDays(1);
-
+      
       // weekends
+      // sunday -> 0, saturday -> 6
       $now = $deliveryDateRange->getNow();
       $to = $deliveryDateRange->getTo();
-      $diff = $deliveryDateRange->daysBetween();
-
-      for($i = 0; $i < $diff; $i++) {
-         
+      $diffNowFrom = $deliveryDateRange->daysBetweenNowFrom();
+      
+      for($i = 0; $i < $diffNowFrom; $i++) {
+         $day = clone $now;
+         $numDay = $day->modify('+' . $i . ' day')->format('w');
+         if ($numDay == 0 || $numDay == 6){
+            $deliveryDateRange->addDays(1);
+         }
+      }
+      
+      $from = $deliveryDateRange->getFrom();
+      $numDayFrom = $from->format('w');
+      if ($numDayFrom == 0){
+         $deliveryDateRange->addDays(1);
+      } else if ($numDayFrom == 6) {
+         $deliveryDateRange->addDays(2);
       }
 
+      $diffFromTo = $deliveryDateRange->daysBetweenFromTo();
+      for($i = 1; $i < $diffFromTo; $i++) {
+         $day = clone $from;
+         $numDay = $day->modify('+' . $i . ' day')->format('w');
+         if ($numDay == 0 || $numDay == 6){
+            $deliveryDateRange->addDaysTo(1);
+         }
+      }
+      // var_dump($from->format('Y-m-d')." ".$to->format('Y-m-d'));die();
+
+      $to = $deliveryDateRange->getTo();
+      $numDayTo = $to->format('w');
+      if ($numDayTo == 0){
+         $deliveryDateRange->addDaysTo(1);
+      } else if ($numDayTo == 6) {
+         $deliveryDateRange->addDaysTo(2);
+      }
+
+      
       return $deliveryDateRange;
    }
 }

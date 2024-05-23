@@ -14,10 +14,13 @@ class DeliveryDateRange
       $this->now = new DateTime();
       $this->from = clone $this->now;
       $this->to = clone $this->now;
-      // $this->to->modify('+1 day');
+      $this->to->modify('+1 day');
+      // $this->now = new DateTime('2024-05-22');
+      // $this->from = new DateTime('2024-05-24');
+      // $this->to = new DateTime('2024-05-27');
    }
 
-   public function addDaysFrom(int $numDays)
+   private function addDaysFrom(int $numDays)
    {
       $this->from->modify('+' . $numDays . ' day');
    }
@@ -33,24 +36,35 @@ class DeliveryDateRange
       $this->addDaysTo($numDays);
    }
 
-   public function daysBetween(): int
+   /**
+    * Days between now and start of range
+    */
+   public function daysBetweenNowFrom(): int
    {
-      return $this->now->diff($this->to)->days;
+      return $this->now->diff($this->from)->days;
    }
+
+   /**
+    * Days between now and end of range
+    */
+    public function daysBetweenFromTo(): int
+    {
+       return $this->from->diff($this->to)->days;
+    }
 
    public function getTo()
    {
-      return $this->to->format('Y-m-d H:i:s');
+      return $this->to;
    }
 
    public function getFrom()
    {
-      return $this->from->format('Y-m-d H:i:s');
+      return $this->from;
    }
 
    public function getNow()
    {
-      return $this->now->format('Y-m-d H:i:s');
+      return $this->now;
    }
 
    public function format(DateTime $date)
@@ -67,6 +81,7 @@ class DeliveryDateRange
 
    public function sameDay()
    {
+      // var_dump($this->from->format('Y-m-d')." ".$this->to->format('Y-m-d'));die();
       return $this->from->format('Y-m-d') == $this->to->format('Y-m-d');
    }
 
