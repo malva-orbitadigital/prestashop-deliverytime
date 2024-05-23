@@ -14,7 +14,7 @@ class DeliveryDateRange
       $this->now = new DateTime();
       $this->from = clone $this->now;
       $this->to = clone $this->now;
-      $this->to->modify('+1 day');
+      // $this->to->modify('+1 day');
       // $this->now = new DateTime('2024-05-22');
       // $this->from = new DateTime('2024-05-24');
       // $this->to = new DateTime('2024-05-27');
@@ -25,15 +25,16 @@ class DeliveryDateRange
       $this->from->modify('+' . $numDays . ' day');
    }
 
-   public function addDaysTo(int $numDays)
+   private function addDaysTo(int $numDays)
    {
       $this->to->modify('+' . $numDays . ' day');
    }
 
-   public function addDays(int $numDays)
+   public function addDays(int $from, int $to = null)
    {
-      $this->addDaysFrom($numDays);
-      $this->addDaysTo($numDays);
+      if ($to == null) $to = $from;
+      $this->addDaysFrom($from);
+      $this->addDaysTo($to);
    }
 
    /**

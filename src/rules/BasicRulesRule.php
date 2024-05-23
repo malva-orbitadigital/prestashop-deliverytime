@@ -5,7 +5,6 @@ class BasicRulesRule implements DeliveryDateRangeRule
 {
    // ! Ultima regla que se aplicará
    // TODO añadir un dia de envio (preparacion pedido) 
-   // TODO calcular fines de semana
 
    public function apply(DeliveryDateRange $deliveryDateRange): DeliveryDateRange
    {
@@ -16,6 +15,10 @@ class BasicRulesRule implements DeliveryDateRangeRule
       // sunday -> 0, saturday -> 6
       $now = $deliveryDateRange->getNow();
       $to = $deliveryDateRange->getTo();
+      
+      // $from = $deliveryDateRange->getFrom();
+      // var_dump($from->format('Y-m-d')." ".$to->format('Y-m-d'));die();
+
       $diffNowFrom = $deliveryDateRange->daysBetweenNowFrom();
       
       for($i = 0; $i < $diffNowFrom; $i++) {
@@ -39,17 +42,16 @@ class BasicRulesRule implements DeliveryDateRangeRule
          $day = clone $from;
          $numDay = $day->modify('+' . $i . ' day')->format('w');
          if ($numDay == 0 || $numDay == 6){
-            $deliveryDateRange->addDaysTo(1);
+            $deliveryDateRange->addDays(0, 1);
          }
       }
-      // var_dump($from->format('Y-m-d')." ".$to->format('Y-m-d'));die();
 
       $to = $deliveryDateRange->getTo();
       $numDayTo = $to->format('w');
       if ($numDayTo == 0){
-         $deliveryDateRange->addDaysTo(1);
+         $deliveryDateRange->addDays(0, 1);
       } else if ($numDayTo == 6) {
-         $deliveryDateRange->addDaysTo(2);
+         $deliveryDateRange->addDays(0, 2);
       }
 
       
